@@ -166,7 +166,7 @@ jobs:
           with:
             method: kubeconfig
             kubeconfig: '${{ secrets.KUBECONFIG }}'
-        - run: kubectl version --output=yaml
+        #- run: kubectl version --output=yaml
   # Below codes are added to complete the task
         - run: >
             echo "INGRESS_IP=$(kubectl -n ingress-nginx get services
@@ -181,10 +181,15 @@ jobs:
             NAMESPACE: '${{ vars.NAMESPACE }}'
             REPLICAS: '${{ vars.REPLICAS }}'
             IMAGE: >-
-              ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha
-              }}
+              ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha}}
             INGRESS_IP: '${{ env.INGRESS_IP }}'
         - run: cat kubernetes/development/*.yaml
-
+      
+    integration-testing:
+        name: Integration Testing
+        needs: dev-deploy
+        uses: ./.github/workflows/reusable-workflow.yml
+        with:
+          ingress-url: ${{ needs.dev-deploy.outputs.APP_INGRESS_URL }}
 
 
