@@ -157,6 +157,8 @@ jobs:
       runs-on: ubuntu-latest
       environment:
         name: development
+      outputs:
+        APP_INGRESS_URL: ${{ steps.extract-ip.outputs.APP_INGRESS_URL }}
       steps:
         - uses: actions/checkout@v4
         - uses: azure/setup-kubectl@v4
@@ -166,7 +168,14 @@ jobs:
           with:
             method: kubeconfig
             kubeconfig: '${{ secrets.KUBECONFIG }}'
-        #- run: kubectl version --output=yaml
+        - name: Get Ingress IP and set outputs
+          id: extract-ip
+          run: |
+            INGRESS_IP=$(kubectl -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
+            echo "APP_INGRESS_URL=http://$INGRESS_IP" >> $GITHUB_OUTPUT
+      # - run: kubectl version --output=yaml
+          continue-on-error: true
   # Below codes are added to complete the task
         - run: >
             echo "INGRESS_IP=$(kubectl -n ingress-nginx get services
